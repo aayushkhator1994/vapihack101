@@ -1,0 +1,3 @@
+- Ship the push-notification callback so a closed lid still reaches you
+- Have Manus build the Laptop Closed landing page
+- Let Jev decide when a finished task is worth interrupting you
