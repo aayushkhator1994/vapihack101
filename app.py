@@ -154,7 +154,9 @@ def manus_watch(tid):
             if d["status"] in ("stopped", "error"):
                 m = httpx.get(f"{MANUS}/task.listMessages", headers=MH(), timeout=20,
                               params={"task_id": tid, "order": "desc", "limit": 20}).json().get("messages", [])
-                last = next((x["assistant_message"] for x in m if x["type"] == "assistant_message"), {})
+                am = [x["assistant_message"] for x in m if x["type"] == "assistant_message"]
+                # prefer the actual result message over later status notes
+                last = next((a for a in am if a.get("delivery_kind") == "result"), am[0] if am else {})
                 txt = last.get("content", "")
                 # a preview server can keep "background jobs" alive forever; a result message means done
                 if d.get("has_running_background_jobs") and last.get("delivery_kind") != "result":
