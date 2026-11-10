@@ -151,10 +151,14 @@ def manus_watch(tid):
                     json={"task_id": tid, "message": {"content": "Continue and use your best judgment."}})
                 nudged = True
                 log("manus", f"{tid} waiting -> nudged ({r.status_code} {r.text[:120]})")
-            if d["status"] in ("stopped", "error") and not d.get("has_running_background_jobs"):
+            if d["status"] in ("stopped", "error"):
                 m = httpx.get(f"{MANUS}/task.listMessages", headers=MH(), timeout=20,
                               params={"task_id": tid, "order": "desc", "limit": 20}).json().get("messages", [])
-                txt = next((x["assistant_message"]["content"] for x in m if x["type"] == "assistant_message"), "")
+                last = next((x["assistant_message"] for x in m if x["type"] == "assistant_message"), {})
+                txt = last.get("content", "")
+                # a preview server can keep "background jobs" alive forever; a result message means done
+                if d.get("has_running_background_jobs") and last.get("delivery_kind") != "result":
+                    continue
                 TASKS[tid]["result"] = txt
                 log("manus", f"{tid} {d['status']}: {txt[:120]}")
                 title = TASKS[tid]["title"]
@@ -242,6 +246,14 @@ async def vapi_tools(req: Request):
     if not results:
         log("tool-raw", json.dumps(body)[:400])
     return {"results": results}
+
+@app.post("/watch")
+def watch(task_id: str, title: str = "Manus task"):
+    """Re-attach a Manus task after a server restart; it alerts when the task is done."""
+    TASKS[task_id] = {"title": title[:60], "status": "running", "url": f"https://manus.im/app/{task_id}", "result": ""}
+    threading.Thread(target=manus_watch, args=(task_id,), daemon=True).start()
+    log("manus", f"watching {task_id}")
+    return {"ok": True}
 
 @app.post("/manus-webhook")
 async def manus_webhook(req: Request):
