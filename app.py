@@ -92,6 +92,7 @@ def call_me(first_message):
 def alert(title, message, click=None, force=None):
     """force: None = follow NOTIFY_MODE, 'push' = push only."""
     CTX["pending"] = message
+    load_env()  # pick up NOTIFY_MODE changes without a restart
     mode = force or E("NOTIFY_MODE", "push")
     ok = False
     if mode in ("push", "both"): ok = push(title, message, click) or ok
