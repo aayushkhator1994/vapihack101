@@ -12,6 +12,10 @@ s = {"type": "string"}
 body = {
   "name": "Laptop Closed",
   "firstMessage": "Hey, it's your laptop. What should I work on?",
+  # Noise handling: no fake office ambience, filter background voices, ignore short noises as interruptions
+  "backgroundSound": "off",
+  "backgroundSpeechDenoisingPlan": {"smartDenoisingPlan": {"enabled": True}},
+  "stopSpeakingPlan": {"numWords": 2, "voiceSeconds": 0.4, "backoffSeconds": 1.5},
   "transcriber": {"provider": "deepgram", "model": "nova-3", "language": "en"},
   "voice": {"provider": "deepgram", "model": "aura-2", "voiceId": "thalia"},
   "model": {"provider": "openai", "model": "gpt-4o",
