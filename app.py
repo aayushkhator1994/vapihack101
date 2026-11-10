@@ -52,8 +52,8 @@ def route(request):
 def notify_decision(result):
     try:
         c, p = jev(result, "notify", "How should the user be told that this background task finished?",
-            {"call": "Important or actionable result worth interrupting them",
-             "text": "Minor result, a quiet notification is enough",
+            {"call": "The task succeeded and produced something the user can look at or use now, like a built or deployed page, app, or report",
+             "text": "Only a minor progress update or small note with nothing new to look at",
              "silent": "Failed, empty or irrelevant result"})
         log("jev", f"notify={c} ({p:.2f})")
         return c
