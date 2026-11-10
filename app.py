@@ -156,7 +156,9 @@ def manus_watch(tid):
                               params={"task_id": tid, "order": "desc", "limit": 20}).json().get("messages", [])
                 am = [x["assistant_message"] for x in m if x["type"] == "assistant_message"]
                 # prefer the actual result message over later status notes
-                last = next((a for a in am if a.get("delivery_kind") == "result"), am[0] if am else {})
+                results = [a for a in am if a.get("delivery_kind") == "result"]
+                # Manus can add short follow-up "result" notes (e.g. preview server status); the real summary is the longest
+                last = max(results, key=lambda a: len(a.get("content", ""))) if results else (am[0] if am else {})
                 txt = last.get("content", "")
                 # a preview server can keep "background jobs" alive forever; a result message means done
                 if d.get("has_running_background_jobs") and last.get("delivery_kind") != "result":
